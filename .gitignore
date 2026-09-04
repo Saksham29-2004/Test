@@ -1,0 +1,25 @@
+@"
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Environment / secrets
+.env
+.env.*
+
+# Raw/local data
+Project-Data/raw/
+
+# Temporary test data
+*crash_test*
+*test.csv
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+"@ | Set-Content .gitignore
