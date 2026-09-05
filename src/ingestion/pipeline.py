@@ -671,6 +671,6 @@ def ingest_orders(csv_path=None):
 
 if __name__ == "__main__":
 
-    result = ingest_orders("")
+    result = ingest_orders()
 
     print(result)
