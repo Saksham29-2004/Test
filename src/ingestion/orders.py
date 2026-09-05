@@ -2,6 +2,8 @@ import csv
 
 
 def load_orders_to_staging(csv_path, ingestion_id, conn):
+    staged_count = 0
+
     with conn.cursor() as cur:
         with open(
             csv_path,
@@ -10,6 +12,8 @@ def load_orders_to_staging(csv_path, ingestion_id, conn):
             newline="",
         ) as file:
             reader = csv.reader(file)
+
+            # Skip CSV header
             next(reader)
 
             with cur.copy(
@@ -28,6 +32,7 @@ def load_orders_to_staging(csv_path, ingestion_id, conn):
                 FROM STDIN
                 """
             ) as copy:
+
                 for row in reader:
                     copy.write_row(
                         (
@@ -35,3 +40,7 @@ def load_orders_to_staging(csv_path, ingestion_id, conn):
                             *row,
                         )
                     )
+
+                    staged_count += 1
+
+    return staged_count

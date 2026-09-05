@@ -21,7 +21,6 @@ def get_running_ingestions(conn):
             ORDER BY started_at
             """
         )
-
         return cur.fetchall()
 
 
@@ -41,7 +40,6 @@ def get_ingestion_run(conn, ingestion_id):
             """,
             (ingestion_id,),
         )
-
         return cur.fetchone()
 
 
@@ -55,7 +53,6 @@ def get_staging_count(conn, ingestion_id):
             """,
             (ingestion_id,),
         )
-
         return cur.fetchone()[0]
 
 
@@ -85,7 +82,6 @@ def update_ingestion_status(
     commit=True,
 ):
     with conn.cursor() as cur:
-
         if stage is None:
             cur.execute(
                 """
@@ -102,7 +98,6 @@ def update_ingestion_status(
                     ingestion_id,
                 ),
             )
-
         else:
             cur.execute(
                 """
@@ -303,7 +298,7 @@ def recover_ingestion(ingestion_id):
 
         try:
 
-            finalized_count = finalize_orders(
+            inserted_count = finalize_orders(
                 conn,
                 ingestion_id,
             )
@@ -313,11 +308,15 @@ def recover_ingestion(ingestion_id):
                 ingestion_id,
             )
 
-            if staging_count != finalized_count:
+            skipped_existing_count = (
+                staging_count - inserted_count
+            )
+
+            if skipped_existing_count < 0:
                 raise RuntimeError(
-                    "Staging/finalization row count mismatch: "
+                    "Finalized more rows than were staged: "
                     f"staged={staging_count}, "
-                    f"finalized={finalized_count}"
+                    f"inserted={inserted_count}"
                 )
 
             update_ingestion_status(
@@ -344,7 +343,8 @@ def recover_ingestion(ingestion_id):
             "status": "SUCCESS",
             "blocking_rules": [],
             "staged_count": staging_count,
-            "finalized_count": finalized_count,
+            "inserted_count": inserted_count,
+            "skipped_existing_count": skipped_existing_count,
         }
 
     raise ValueError(
@@ -355,7 +355,7 @@ def recover_ingestion(ingestion_id):
 if __name__ == "__main__":
 
     ingestion_id = (
-        "b06a9d28-c971-4f4a-9058-965469e862fe"
+        "ea419795-2af2-4edf-8c3c-4935921ab951"
     )
 
     result = recover_ingestion(ingestion_id)
